@@ -1,7 +1,7 @@
 # Bode Plot Approximation Tool
 
 ## Overview
-This MATLAB tool provides an interactive and accurate way to approximate and analyze Bode plots for linear time-invariant (LTI) systems. It allows users to input a transfer function in a natural symbolic format (e.g., `30*s*(s-472000)`), computes the magnitude and phase characteristics, and generates professional-quality Bode plots. Additionally, it enables users to evaluate the system's response at specific frequencies, including magnitude, phase, and their respective slopes.
+This MATLAB tool provides an interactive and accurate way to approximate and analyze Bode plots for linear time-invariant (LTI) systems. It allows users to input a transfer function in a natural symbolic format (e.g., `30*s*(s-472000)`), computes the magnitude and phase characteristics, and generates professional-quality Bode plots _(in progress)_. Additionally, it enables users to evaluate the system's response at specific frequencies, including magnitude, phase, and their respective slopes.
 
 ---
 
