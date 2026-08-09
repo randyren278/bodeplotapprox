@@ -14,15 +14,17 @@
   <a href="#stack">Stack</a> ·
   <a href="#features">Features</a> ·
   <a href="#how-it-works">How It Works</a> ·
+  <a href="#architecture">Architecture</a> ·
   <a href="#known-parity-artifacts">Known Parity Artifacts</a>
 </p>
 
 <p align="center">
-  <a href="https://bode.randyren.org"><img src="https://img.shields.io/website?url=https%3A%2F%2Fbode.randyren.org&style=for-the-badge&label=bode.randyren.org&up_color=1d4ed8&down_color=9a2012" alt="live site status"></a>
-  <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/React-18-14140f?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
-  <img src="https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Deployed on Vercel">
+  <a href="https://bode.randyren.org"><img src="https://img.shields.io/website?url=https%3A%2F%2Fbode.randyren.org&label=bode.randyren.org&up_color=1d4ed8&down_color=9a2012" alt="live site status"></a>
+  <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white" alt="typescript">
+  <img src="https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB" alt="react">
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="vite">
+  <img src="https://img.shields.io/badge/deployed%20on-Vercel-000000?logo=vercel&logoColor=white" alt="vercel">
+  <img src="https://img.shields.io/badge/license-yours-2ea043" alt="license">
 </p>
 
 ---
@@ -108,6 +110,40 @@ Requires the Symbolic Math and Control System toolboxes.
    and via the straight-line asymptote rules.
 4. **Probe.** At any chosen ω, the tool reports approximate magnitude, magnitude slope, approximate
    phase, and phase slope — the same four values the original MATLAB prompt loop printed.
+
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
+
+## Architecture
+
+`analyse()` runs once per edit and builds the model; `sweep()` and `probe()` both read that model
+and call into `approx.ts` — `sweep()` also calls `exact.ts` for the reference curve, `probe()`
+additionally calls the slope functions. Nothing here talks to a server; it's one pass through
+`src/core/`, then straight into the SVG.
+
+```mermaid
+flowchart TD
+    In["num, den strings"] --> P["poly.ts<br/>parsePoly"]
+    P --> R["roots.ts<br/>Durand-Kerner"]
+    R --> Z["zpk.ts<br/>classify + K"]
+    Z --> M[("Model<br/>zeros · poles · K · gain")]
+
+    M --> SW["system.ts<br/>sweep()"]
+    M --> PR["system.ts<br/>probe(ω)"]
+
+    SW --> EX["exact.ts<br/>H(jω), Horner"]
+    SW --> AP["approx.ts<br/>ported asymptote rules"]
+    PR --> AP
+
+    EX --> BP["BodePlot.tsx"]
+    AP --> BP
+    EX --> SK["Sparkline.tsx"]
+    AP --> SK
+    M --> FM["format.ts<br/>factored H(s)"]
+
+    BP --> UI(["magnitude / phase panels<br/>+ probe readout"])
+    SK --> UI
+    FM --> UI
+```
 
 <p align="right"><a href="#readme-top">back to top ↑</a></p>
 
