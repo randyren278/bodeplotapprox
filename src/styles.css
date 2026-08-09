@@ -1,0 +1,333 @@
+:root {
+  --bg: #fafaf7;
+  --ink: #0f0f0f;
+  --muted: #8a8a8a;
+  --rule: #d8d8d5;
+  --accent: #a8100a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 28px 44px 24px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 20px;
+}
+
+/* ---- masthead ---- */
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 16px;
+}
+
+.brand {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tagline {
+  font-family: 'Instrument Serif', ui-serif, Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.25;
+  margin: 8px 0 0;
+  max-width: 34ch;
+}
+
+.masthead-meta {
+  text-align: right;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.8;
+  white-space: nowrap;
+}
+
+/* ---- bento ---- */
+
+.grid {
+  display: grid;
+  grid-template-columns: 372px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.col {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cell {
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 22px 24px;
+  transition: border-color 0.12s ease;
+  min-width: 0;
+}
+
+.cell:hover {
+  border-color: var(--muted);
+}
+
+.cell-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.kicker {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.kicker.ink {
+  color: var(--ink);
+}
+
+/* ---- transfer function, set as a fraction ---- */
+
+.tf {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.tf-lab {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tf-in {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 9px 10px;
+}
+
+.tf-in:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.tf-bar {
+  grid-column: 2 / 3;
+  height: 1px;
+  background: var(--ink);
+}
+
+.error {
+  margin: 14px 0 0;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---- label / value rows ---- */
+
+.rows,
+.out {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 7px 16px;
+  align-content: start;
+}
+
+.rl {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  align-self: center;
+}
+
+.rv {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.rv .line {
+  display: block;
+}
+
+.rv.wrap {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rv .over {
+  display: block;
+  border-top: 1px solid var(--rule);
+  padding-top: 3px;
+  margin-top: 3px;
+}
+
+/* ---- probe ---- */
+
+.probe {
+  display: grid;
+  grid-template-columns: 32px 1fr 52px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.probe-sym {
+  font-size: 15px;
+}
+
+.probe-unit {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.out {
+  gap: 9px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.out .rv {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+/* ---- plot ---- */
+
+.plot {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.grid-line {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.frame {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.tick {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.trace-exact {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+/* --accent is reserved for the approximation. It appears nowhere decorative. */
+.trace-approx {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3.5;
+}
+
+.legend {
+  display: flex;
+  gap: 22px;
+  margin-top: 12px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.legend i {
+  display: inline-block;
+  width: 22px;
+  height: 0;
+  border-top: 1.5px solid var(--ink);
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.legend .ap i {
+  border-top: 1.5px dashed var(--accent);
+}
+
+/* ---- footer ---- */
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-top: 1px solid var(--rule);
+  padding-top: 14px;
+}
+
+@media (max-width: 1000px) {
+  .page {
+    padding: 20px 20px 18px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .masthead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .masthead-meta {
+    text-align: left;
+  }
+}
