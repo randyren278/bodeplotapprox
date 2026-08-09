@@ -1,11 +1,56 @@
-# Bode Plot Approximation Tool
+<a name="readme-top"></a>
 
-## Overview
-This MATLAB tool provides an interactive and accurate way to approximate and analyze Bode plots for linear time-invariant (LTI) systems. It allows users to input a transfer function in a natural symbolic format (e.g., `30*s*(s-472000)`), computes the magnitude and phase characteristics, and generates professional-quality Bode plots _(in progress)_. Additionally, it enables users to evaluate the system's response at specific frequencies, including magnitude, phase, and their respective slopes.
+<p align="center">
+  <img src="public/favicon.svg" width="72" height="72" alt="bode — a corner-frequency break, marked">
+</p>
 
-There is now also a **browser version** that needs no MATLAB — see [Running It](#running-it).
+<h1 align="center">bode</h1>
+
+<p align="center"><i>Straight-line asymptotes, and exactly how far off they are.</i></p>
+
+<p align="center">
+  <a href="https://bode.randyren.org">Live</a> ·
+  <a href="#running-it">Running It</a> ·
+  <a href="#stack">Stack</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#how-it-works">How It Works</a> ·
+  <a href="#known-parity-artifacts">Known Parity Artifacts</a>
+</p>
+
+<p align="center">
+  <a href="https://bode.randyren.org"><img src="https://img.shields.io/website?url=https%3A%2F%2Fbode.randyren.org&style=for-the-badge&label=bode.randyren.org&up_color=1d4ed8&down_color=9a2012" alt="live site status"></a>
+  <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/React-18-14140f?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Deployed on Vercel">
+</p>
 
 ---
+
+An asymptotic Bode plot approximator for linear time-invariant (LTI) systems. Enter a transfer
+function in natural symbolic form — `30*s*(s+472000)` over `(s+31000)*(s^2+2*0.2*96000*s+96000^2)`
+— and it derives poles, zeros and gain, draws the straight-line magnitude and phase asymptotes
+against the exact response, and reports magnitude, phase, and their slopes at any test frequency.
+
+> [!NOTE]
+> **Two implementations, one algorithm.** `bodewithgraphing.m` / `bodeplot.m` are the original
+> MATLAB tool and require the Symbolic Math and Control System toolboxes. The browser version at
+> [bode.randyren.org](https://bode.randyren.org) is a line-for-line TypeScript port — same
+> asymptote rules, same constants, no MATLAB or toolboxes needed. See [Running It](#running-it).
+
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
+
+## Stack
+
+<table>
+  <tr><td><b>Live</b></td><td><a href="https://bode.randyren.org">bode.randyren.org</a> — static, client-side only, no server</td></tr>
+  <tr><td><b>Frontend</b></td><td>React 18 · Vite 8 · TypeScript, hand-drawn SVG plots (no chart library)</td></tr>
+  <tr><td><b>Source of truth</b></td><td><code>bodewithgraphing.m</code> — unmodified; the web port is checked against it</td></tr>
+  <tr><td><b>Tests</b></td><td><code>npm test</code> — 53 Vitest cases: parser, root round-trips, asymptote values, slope self-consistency, exact-vs-approximate agreement</td></tr>
+  <tr><td><b>Deploy</b></td><td>Vercel, git-connected — push to <code>main</code> ships production</td></tr>
+</table>
+
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
 
 ## Running It
 
@@ -19,11 +64,6 @@ npm start
 Opens on `http://localhost:5173`. Everything runs client-side; there is no server and no
 MATLAB dependency. `npm run build` produces a static bundle.
 
-The web version is a **line-for-line TypeScript port** of `bodewithgraphing.m` — same
-asymptote rules, same constants, same behaviour, including the quirks documented under
-[Known Parity Artifacts](#known-parity-artifacts). The `.m` files are unmodified and remain
-the reference implementation.
-
 Three MATLAB built-ins are reimplemented in `src/core/` so no toolboxes are needed:
 
 | MATLAB | Replacement | Purpose |
@@ -31,9 +71,6 @@ Three MATLAB built-ins are reimplemented in `src/core/` so no toolboxes are need
 | `str2sym` + `expand` + `sym2poly` | `poly.ts` | Parse an expression in `s` into polynomial coefficients |
 | `roots` / `zpkdata` | `roots.ts` | Durand–Kerner root finding, and the zpk gain |
 | `bode` | `exact.ts` | Exact response, `num(jω)/den(jω)` |
-
-`npm test` runs the verification suite (40 tests) covering the parser, root round-trips,
-the ported asymptote rules, slope self-consistency, and exact-vs-approximate agreement.
 
 ### MATLAB
 
@@ -44,93 +81,54 @@ Requires the Symbolic Math and Control System toolboxes.
 >> bodeplot           % interactive frequency prompt only
 ```
 
----
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
 
 ## Features
-1. **Natural Input Format**:
-   - Users can input transfer functions in a symbolic format (e.g., `30*s*(s-472000)` or `(s+2)*(s^2+8*s+32)`).
-   - Handles real and complex poles/zeros, including those at the origin.
 
-2. **Accurate Bode Plot Approximation**:
-   - Computes magnitude (in dB) and phase (in degrees) across a wide frequency range.
-   - Uses analytic slope calculations for precise results.
+- **Natural input format** — `30*s*(s-472000)`, `(s+2)*(s^2+8*s+32)`; real and complex poles/zeros,
+  including those at the origin.
+- **Rendered H(s)** — the entered expression is shown back as a factored fraction plus its
+  expanded polynomial, so you can confirm the parse before trusting the plot.
+- **Exact vs. asymptotic overlay** — magnitude (dB) and phase (deg) across a wide frequency range,
+  with a deviation sparkline showing where the approximation is weakest.
+- **Frequency probe** — magnitude, phase, and their analytic slopes (dB/decade, °/decade) at any
+  test frequency, live-linked to a crosshair on both plots.
+- **Correct half-plane handling** — right-half-plane and left-half-plane poles/zeros are
+  distinguished, including the case where that distinction breaks the approximation (see below).
+- **Light and dark**, no flash on load.
 
-3. **Interactive Frequency Analysis**:
-   - Users can input specific frequencies to evaluate the system's response.
-   - Provides magnitude, phase, and their slopes at the specified frequency.
-
-4. **Robust Handling of System Components**:
-   - Supports real and complex poles/zeros.
-   - Correctly accounts for right-half-plane (RHP) and left-half-plane (LHP) components.
-   - Handles poles/zeros at the origin.
-
-5. **Slope Calculation**:
-   - Computes magnitude slope (dB/decade) and phase slope (degrees/decade) at any frequency.
-   - Matches exact slope values for corner frequencies.
-
----
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
 
 ## How It Works
-1. **Input Transfer Function**:
-   - The user inputs the numerator and denominator of the transfer function in symbolic form.
-   - Example:
-     ```
-     Numerator: 30*s*(s-472000)
-     Denominator: (s+31000)*(s^2+2*0.2*96000*s+96000^2)
-     ```
 
-2. **System Analysis**:
-   - The tool extracts poles, zeros, and gain from the transfer function.
-   - Computes the low-frequency gain (`K`) and processes real/complex poles and zeros.
+1. **Parse.** The numerator and denominator are read as polynomials in `s`.
+2. **Factor.** Poles, zeros and gain are extracted; the low-frequency gain `K` used by the
+   approximation is computed from them.
+3. **Sweep.** Magnitude and phase are computed across `logspace(-3, 6)`, both exactly (`H(jω)`)
+   and via the straight-line asymptote rules.
+4. **Probe.** At any chosen ω, the tool reports approximate magnitude, magnitude slope, approximate
+   phase, and phase slope — the same four values the original MATLAB prompt loop printed.
 
-3. **Bode Plot Generation**:
-   - Automatically determines the frequency range based on pole/zero locations.
-   - Computes magnitude and phase across the frequency range.
-   - Plots the Bode magnitude and phase diagrams.
-
-4. **Interactive Testing**:
-   - Users can input specific frequencies to evaluate the system's response.
-   - The tool outputs:
-     - Approximate magnitude (dB)
-     - Magnitude slope (dB/decade)
-     - Approximate phase (degrees)
-     - Phase slope (degrees/decade)
-
----
-
-## Example Usage
-### Input:
-```matlab
-Enter numerator: 30*s*(s-472000)
-Enter denominator: (s+31000)*(s^2+2*0.2*96000*s+96000^2)
-```
-
----
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
 
 ## Known Parity Artifacts
 
 Behaviours the web port **reproduces rather than fixes**, so that both versions agree. Each is
 pinned by a test, so changing one has to be deliberate.
 
-### 1. Systems with RHP poles/zeros are 180° off in phase
+> [!WARNING]
+> **Systems with an odd number of right-half-plane poles/zeros are 180° off in phase.**
+> `compute_phase` applies its −180° correction only when the zpk gain `k` is negative. But a
+> right-half-plane real zero `(s − a)` contributes a negative factor at low frequency that never
+> reaches `k`, and `real_zero_phase` models only the 0 → −90° swing across the corner — not the
+> constant +180° such a factor carries. `30*s*(s-472000)` is one such system: at ω = 10⁶ rad/s the
+> approximation gives **+120.3°** where the exact response is **−60.7°**. Magnitude is unaffected.
 
-`compute_phase` applies its −180° correction only when the zpk gain `k` is negative. But a
-right-half-plane real zero `(s − a)` contributes a negative factor at low frequency that never
-reaches `k`, and `real_zero_phase` models only the 0 → −90° swing across the corner — not the
-constant +180° such a factor carries. Any system with an **odd number of RHP poles or zeros**
-therefore comes out a flat 180° away from the true phase at every frequency.
+**Phase wrap.** `compute_phase` wraps to [−180°, 180°]; MATLAB's `bode` returns unwrapped phase, so
+in the MATLAB figure the two traces separate by 360° at high frequency. The web version wraps the
+exact trace too so the comparison reads — display-only, the ported approximation code is untouched.
 
-The example above is one: at ω = 10⁶ rad/s the approximation gives **+120.3°** where the exact
-response is **−60.7°**. Magnitude is unaffected and tracks correctly.
+**Complex-pair transition band.** `complex_zero_phase` / `complex_pole_phase` use ω·10^∓ζ as the
+phase transition band, which collapses to a step as ζ → 0. Reproduced as-is.
 
-### 2. Phase wrap
-
-`compute_phase` wraps to [−180°, 180°]; MATLAB's `bode` returns unwrapped phase, so in the
-MATLAB figure the two traces separate by 360° at high frequency. The web version wraps the exact
-trace as well so the comparison reads. This is display-only — the ported approximation code is
-untouched.
-
-### 3. Complex-pair transition band
-
-`complex_zero_phase` / `complex_pole_phase` use ω·10^∓ζ as the phase transition band, which
-collapses to a step as ζ → 0. Reproduced as-is.
+<p align="right"><a href="#readme-top">back to top ↑</a></p>
