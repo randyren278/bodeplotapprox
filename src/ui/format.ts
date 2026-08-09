@@ -1,4 +1,5 @@
 import type { Complex } from '../core/roots';
+import type { Classified } from '../core/zpk';
 
 /** U+2212 MINUS SIGN — aligns with digits, unlike the hyphen. */
 const MINUS = '−';
@@ -11,6 +12,9 @@ export function sign(s: string): string {
 export function sci(x: number, digits = 4): string {
   if (x === 0) return '0';
   if (!Number.isFinite(x)) return x > 0 ? '∞' : `${MINUS}∞`;
+  // Durand-Kerner leaves float noise on exact roots (31000.000000000004);
+  // snapping to 12 significant digits restores 31000 rather than 3.1000e4.
+  x = Number(x.toPrecision(12));
   const abs = Math.abs(x);
   if (abs >= 1e-3 && abs < 1e5 && Number.isInteger(x)) return sign(String(x));
   return sign(x.toExponential(digits).replace('e+', 'e').replace('e-', 'e−'));
@@ -48,6 +52,39 @@ export function rootLines(rs: Complex[]): string[] {
     lines.push(formatRoot(rs[i]));
   }
   return lines.length ? lines : ['none'];
+}
+
+/** Superscript digits, for s² / 10⁻³ without markup. */
+export function sup(n: number | string): string {
+  const map: Record<string, string> = {
+    '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+    '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+  };
+  return String(n).split('').map((c) => map[c] ?? c).join('');
+}
+
+/**
+ * One side of H(s) in factored form: gain · s^n · (s+a) · (s²+bs+c).
+ *
+ * Reads off the classified roots rather than the polynomial, so a complex
+ * pair renders as its real quadratic instead of two conjugate linear terms.
+ */
+export function factoredSide(c: Classified, originCount: number, gain?: number): string {
+  const parts: string[] = [];
+  if (gain !== undefined && gain !== 1) parts.push(sci(gain));
+  if (originCount === 1) parts.push('s');
+  else if (originCount > 1) parts.push(`s${sup(originCount)}`);
+
+  for (const r of c.real) {
+    if (r === 0) continue;
+    parts.push(`(s ${r < 0 ? '+' : MINUS} ${sci(Math.abs(r))})`);
+  }
+  for (const q of c.complexPairs) {
+    const wn = Math.hypot(q.re, q.im);
+    const b = -2 * q.re;
+    parts.push(`(s${sup(2)} ${b >= 0 ? '+' : MINUS} ${sci(Math.abs(b))}s + ${sci(wn * wn)})`);
+  }
+  return parts.length ? parts.join(' · ') : '1';
 }
 
 /** Coefficient array back to a readable polynomial, highest degree first. */

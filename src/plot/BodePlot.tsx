@@ -1,53 +1,50 @@
 /**
  * Semilog Bode panel, hand-drawn SVG.
  *
- * No chart library: the axis treatment, the hairline grid and the
- * exact-vs-approximation trace weights are the whole point of the design, and
- * a general-purpose library would be fought the entire way.
+ * Deliberately low-chrome: a single baseline axis, decade tick marks, two
+ * y-labels bounding the range, and traces labelled at their own ends rather
+ * than through a legend. No grid, no frame, no fill — the data carries the
+ * shape. A chart library would have to be fought the entire way to get here.
  */
 
-import type { Sample } from '../core/system';
+import type { Sample, Corner } from '../core/system';
+import { sup } from '../ui/format';
 
 const W = 900;
-const H = 236;
-const ML = 54;
-const MR = 14;
-const MT = 12;
-const MB = 28;
+const H = 190;
+const ML = 34;
+const MR = 46;
+const MT = 8;
+const MB = 20;
 
-/** Larger than any real step between adjacent samples, but below a 360 wrap. */
+/** Larger than any real step between adjacent samples, smaller than a 360 wrap. */
 const WRAP_BREAK = 170;
-
-const SUPERSCRIPT: Record<string, string> = {
-  '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
-  '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-};
 
 function decadeLabel(d: number): string {
   if (d === 0) return '1';
-  if (d === 1) return '10';
-  return `10${String(d).split('').map((c) => SUPERSCRIPT[c] ?? c).join('')}`;
+  return `10${sup(d)}`;
 }
 
 function chooseStep(range: number, candidates: number[]): number {
-  for (const c of candidates) {
-    if (range / c <= 6) return c;
-  }
+  for (const c of candidates) if (range / c <= 6) return c;
   return candidates[candidates.length - 1];
 }
 
 export interface BodePlotProps {
   samples: Sample[];
   pick: (s: Sample) => { exact: number; approx: number };
-  /** Allowed gridline spacings, smallest first. */
   steps: number[];
   from: number;
   to: number;
+  /** Break frequencies to tick on the axis; omitted on the phase panel. */
+  corners?: Corner[];
+  /** Probe frequency (rad/s) — draws the crosshair. */
+  omega: number | null;
+  onScrub: (w: number) => void;
 }
 
-export function BodePlot({ samples, pick, steps, from, to }: BodePlotProps) {
+export function BodePlot({ samples, pick, steps, from, to, corners, omega, onScrub }: BodePlotProps) {
   const values = samples.map(pick);
-
   const finite = values.flatMap((v) => [v.exact, v.approx]).filter(Number.isFinite);
   let lo = finite.length ? Math.min(...finite) : 0;
   let hi = finite.length ? Math.max(...finite) : 1;
@@ -62,10 +59,6 @@ export function BodePlot({ samples, pick, steps, from, to }: BodePlotProps) {
   const px = (logW: number) => ML + ((logW - from) / (to - from)) * (W - ML - MR);
   const py = (v: number) => MT + ((hi - v) / (hi - lo)) * (H - MT - MB);
 
-  /**
-   * Start a fresh subpath at a non-finite sample or a phase wrap, so the
-   * renderer never draws a vertical line across the discontinuity.
-   */
   const path = (get: (v: { exact: number; approx: number }) => number): string => {
     let d = '';
     let prev: number | null = null;
@@ -82,47 +75,90 @@ export function BodePlot({ samples, pick, steps, from, to }: BodePlotProps) {
     return d.trim();
   };
 
-  const xTicks: number[] = [];
-  for (let d = Math.ceil(from); d <= Math.floor(to); d++) xTicks.push(d);
-  const yTicks: number[] = [];
-  for (let v = lo; v <= hi + step / 2; v += step) yTicks.push(v);
+  const decades: number[] = [];
+  for (let d = Math.ceil(from); d <= Math.floor(to); d++) decades.push(d);
+
+  const lastExact = values.length ? values[values.length - 1].exact : 0;
+  const lastApprox = values.length ? values[values.length - 1].approx : 0;
+  const eY = py(Number.isFinite(lastExact) ? lastExact : lo);
+  const aY = py(Number.isFinite(lastApprox) ? lastApprox : lo);
+  // Nudge the two end labels apart when the traces converge.
+  const push = Math.abs(eY - aY) < 11 ? 6 : 0;
+
+  const scrub = (clientX: number, el: SVGSVGElement) => {
+    const rect = el.getBoundingClientRect();
+    const x = (clientX - rect.left) * (W / rect.width);
+    if (x < ML || x > W - MR) return;
+    onScrub(Math.pow(10, from + ((x - ML) / (W - ML - MR)) * (to - from)));
+  };
+
+  const cursorX = omega !== null && omega > 0 ? px(Math.log10(omega)) : null;
+  const showCursor = cursorX !== null && cursorX >= ML && cursorX <= W - MR;
+  const at = (get: (v: { exact: number; approx: number }) => number): number | null => {
+    if (omega === null || !samples.length) return null;
+    const lw = Math.log10(omega);
+    let best = 0;
+    let bd = Infinity;
+    samples.forEach((s, i) => {
+      const d = Math.abs(s.logW - lw);
+      if (d < bd) { bd = d; best = i; }
+    });
+    const v = get(values[best]);
+    return Number.isFinite(v) ? v : null;
+  };
+  const curE = showCursor ? at((v) => v.exact) : null;
+  const curA = showCursor ? at((v) => v.approx) : null;
 
   return (
-    <svg className="plot" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Bode panel">
-      {xTicks.map((d) => (
-        <line key={`x${d}`} className="grid-line" x1={px(d)} y1={MT} x2={px(d)} y2={H - MB} />
+    <svg
+      className="plot"
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="Bode panel"
+      onMouseMove={(e) => scrub(e.clientX, e.currentTarget)}
+    >
+      <line className="axis" x1={ML} y1={H - MB} x2={W - MR} y2={H - MB} />
+      {decades.map((d) => (
+        <line key={`t${d}`} className="tick-major" x1={px(d)} y1={H - MB} x2={px(d)} y2={H - MB + 3} />
       ))}
-      {yTicks.map((v) => (
-        <line key={`y${v}`} className="grid-line" x1={ML} y1={py(v)} x2={W - MR} y2={py(v)} />
-      ))}
-      <rect className="frame" x={ML} y={MT} width={W - ML - MR} height={H - MT - MB} />
-      {xTicks.map((d) => (
-        <text key={`xl${d}`} className="tick" x={px(d)} y={H - MB + 15} textAnchor="middle">
+      {decades.filter((_, i) => i % 2 === 0).map((d) => (
+        <text key={`x${d}`} className="tick" x={px(d)} y={H - MB + 13} textAnchor="middle">
           {decadeLabel(d)}
         </text>
       ))}
-      {yTicks.map((v) => (
-        <text key={`yl${v}`} className="tick" x={ML - 8} y={py(v) + 3.5} textAnchor="end">
+      {[lo, hi].map((v) => (
+        <text key={`y${v}`} className="tick" x={ML - 6} y={py(v) + 3} textAnchor="end">
           {String(Math.round(v)).replace('-', '−')}
         </text>
       ))}
-      <path className="trace-approx" d={path((v) => v.approx)} />
-      <path className="trace-exact" d={path((v) => v.exact)} />
-    </svg>
-  );
-}
 
-export function Legend() {
-  return (
-    <div className="legend">
-      <span>
-        <i />
-        Exact
-      </span>
-      <span className="ap">
-        <i />
-        Approximation
-      </span>
-    </div>
+      {corners?.map((c) => {
+        const lw = Math.log10(c.w);
+        if (lw < from || lw > to) return null;
+        return (
+          <g key={c.label}>
+            <line className="corner-tick" x1={px(lw)} y1={H - MB} x2={px(lw)} y2={H - MB + 6} />
+            <text className="corner-label" x={px(lw)} y={H - MB + 17} textAnchor="middle">
+              {c.label}
+            </text>
+          </g>
+        );
+      })}
+
+      <path className="trace-exact" d={path((v) => v.exact)} />
+      <path className="trace-approx" d={path((v) => v.approx)} />
+
+      <text className="end-label exact" x={W - MR + 6} y={eY - push + 3.5}>exact</text>
+      <text className="end-label approx" x={W - MR + 6} y={aY + push + 3.5}>approx</text>
+
+      {showCursor && (
+        <g>
+          <line className="xhair-line" x1={cursorX} y1={MT} x2={cursorX} y2={H - MB} />
+          {curE !== null && <circle className="xhair-dot-e" cx={cursorX} cy={py(curE)} r={2.4} />}
+          {curA !== null && <circle className="xhair-dot-a" cx={cursorX} cy={py(curA)} r={2.4} />}
+        </g>
+      )}
+    </svg>
   );
 }

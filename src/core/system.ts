@@ -65,6 +65,28 @@ export function sweep(a: Analysis, points = 1000, from = -3, to = 6): Sample[] {
   return out;
 }
 
+export interface Corner {
+  /** Corner (break) frequency in rad/s — |root| for a real root, ωn for a pair. */
+  w: number;
+  label: string;
+}
+
+/**
+ * Break frequencies, ascending. These are the only frequencies at which the
+ * asymptotic magnitude changes slope, so they anchor the frequency axis.
+ * Roots at the origin are excluded — they have no corner.
+ */
+export function corners(a: Analysis): Corner[] {
+  const out: Corner[] = [];
+  let zi = 0;
+  let pi = 0;
+  for (const r of a.model.z.real) if (r !== 0) out.push({ w: Math.abs(r), label: `z${++zi}` });
+  for (const q of a.model.z.complexPairs) out.push({ w: Math.hypot(q.re, q.im), label: `z${++zi}` });
+  for (const r of a.model.p.real) if (r !== 0) out.push({ w: Math.abs(r), label: `p${++pi}` });
+  for (const q of a.model.p.complexPairs) out.push({ w: Math.hypot(q.re, q.im), label: `p${++pi}` });
+  return out.sort((x, y) => x.w - y.w);
+}
+
 export interface Probe {
   magDb: number;
   magSlope: number;

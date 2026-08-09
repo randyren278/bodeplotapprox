@@ -1,9 +1,38 @@
+/*
+ * Light is the default; dark is opt-in. The base :root carries the light
+ * values so there is no flash before the theme is applied.
+ *
+ * --accent is reserved for the approximation — trace, sparkline, probe
+ * readout. It never appears as decoration.
+ */
 :root {
-  --bg: #fafaf7;
-  --ink: #0f0f0f;
-  --muted: #8a8a8a;
-  --rule: #d8d8d5;
-  --accent: #a8100a;
+  --bg: #fafaf9;
+  --ink: #14140f;
+  --muted: #78786f;
+  --dim: #d8d8d2;
+  --rule: #e6e6e1;
+  --accent: #1d4ed8;
+  --warn: #9a2012;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0a0a0b;
+  --ink: #e7e7e4;
+  --muted: #6f716e;
+  --dim: #3a3b39;
+  --rule: #1c1d1c;
+  --accent: #5b9dff;
+  --warn: #e06a5a;
+}
+
+:root[data-theme='light'] {
+  --bg: #fafaf9;
+  --ink: #14140f;
+  --muted: #78786f;
+  --dim: #d8d8d2;
+  --rule: #e6e6e1;
+  --accent: #1d4ed8;
+  --warn: #9a2012;
 }
 
 * {
@@ -19,148 +48,185 @@ body {
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
-  font-size: 13px;
-  line-height: 1.55;
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .page {
-  min-height: 100vh;
-  padding: 28px 44px 24px;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 20px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 22px 30px;
 }
 
-/* ---- masthead ---- */
+/* ---- header ---- */
 
-.masthead {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 32px;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 16px;
-}
-
-.brand {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.tagline {
-  font-family: 'Instrument Serif', ui-serif, Georgia, serif;
-  font-style: italic;
-  font-size: 18px;
-  line-height: 1.25;
-  margin: 8px 0 0;
-  max-width: 34ch;
-}
-
-.masthead-meta {
-  text-align: right;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  line-height: 1.8;
-  white-space: nowrap;
-}
-
-/* ---- bento ---- */
-
-.grid {
-  display: grid;
-  grid-template-columns: 372px 1fr;
-  gap: 14px;
-  align-items: start;
-}
-
-.col {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-}
-
-.cell {
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  padding: 22px 24px;
-  transition: border-color 0.12s ease;
-  min-width: 0;
-}
-
-.cell:hover {
-  border-color: var(--muted);
-}
-
-.cell-head {
+.hdr {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 14px;
 }
 
-.kicker {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.hdr-name {
+  font-size: 12px;
+}
+.hdr-name b {
+  font-weight: 500;
+}
+.hdr-name span {
   color: var(--muted);
 }
 
-.kicker.ink {
+.hdr-stat {
+  display: flex;
+  gap: 20px;
+  font-size: 11px;
+  color: var(--muted);
+  align-items: baseline;
+  white-space: nowrap;
+}
+.hdr-stat b {
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.theme-toggle button {
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.theme-toggle button.active,
+.theme-toggle button:hover {
   color: var(--ink);
 }
-
-/* ---- transfer function, set as a fraction ---- */
-
-.tf {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 8px 12px;
-  align-items: center;
+.theme-toggle .sep {
+  color: var(--dim);
 }
 
-.tf-lab {
+/* ---- layout: hairline-divided regions, no cards ---- */
+
+.body {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 0;
+}
+
+.rail {
+  border-right: 1px solid var(--rule);
+  padding-right: 20px;
+  min-width: 0;
+}
+
+.main {
+  padding-left: 20px;
+  min-width: 0;
+}
+
+.blk {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.blk:first-child {
+  padding-top: 0;
+}
+.blk:last-child {
+  border-bottom: none;
+}
+
+.blk-h {
   font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ---- rendered H(s) ---- */
+
+.frac {
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  padding: 2px 0 4px;
+  margin-bottom: 12px;
+}
+.frac.invalid {
   color: var(--muted);
 }
+.frac-n,
+.frac-d {
+  padding: 3px 2px;
+  overflow-wrap: anywhere;
+}
+.frac-bar {
+  height: 0;
+  border-top: 1px solid var(--ink);
+  margin: 1px 0;
+}
 
-.tf-in {
-  width: 100%;
+.expanded {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.65;
+  margin: -6px 0 12px;
+  overflow-wrap: anywhere;
+}
+
+/* ---- transfer function input, set as a fraction ---- */
+
+.tf-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-top: 8px;
+}
+.tf-row .tag {
+  color: var(--muted);
+  font-size: 11px;
+  width: 28px;
+  flex: 0 0 auto;
+}
+.tf-row input {
+  flex: 1;
   min-width: 0;
   font: inherit;
+  font-size: 11.5px;
   color: var(--ink);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  padding: 9px 10px;
+  border: none;
+  border-bottom: 1px solid var(--dim);
+  padding: 3px 0;
+  border-radius: 0;
 }
-
-.tf-in:focus {
+.tf-row input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tf-row input.bad {
+  border-bottom-color: var(--warn);
+  color: var(--warn);
+}
+.tf-div {
+  height: 0;
+  border-top: 1px solid var(--dim);
+  margin: 9px 0 9px 36px;
 }
 
-.tf-bar {
-  grid-column: 2 / 3;
-  height: 1px;
-  background: var(--ink);
-}
-
-.error {
-  margin: 14px 0 0;
-  color: var(--accent);
-  font-size: 12px;
+.err {
+  color: var(--warn);
+  font-size: 10.5px;
+  margin: 9px 0 0;
   line-height: 1.5;
 }
-
 .muted {
   color: var(--muted);
   margin: 0;
@@ -168,137 +234,191 @@ body {
 
 /* ---- label / value rows ---- */
 
-.rows,
-.out {
+.kv {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 7px 16px;
-  align-content: start;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  font-size: 11.5px;
 }
-
-.rl {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.kv .k {
   color: var(--muted);
-  align-self: center;
 }
-
-.rv {
+.kv .v {
   color: var(--ink);
+  text-align: right;
   font-variant-numeric: tabular-nums;
-  min-width: 0;
+  white-space: nowrap;
 }
-
-.rv .line {
-  display: block;
+.kv .v.accent {
+  color: var(--accent);
 }
-
-.rv.wrap {
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.rv .over {
-  display: block;
+.kv.out {
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--rule);
-  padding-top: 3px;
+}
+
+.pz-line {
+  font-size: 11.5px;
+}
+.pz-line + .pz-line {
   margin-top: 3px;
 }
-
-/* ---- probe ---- */
+.pz-tag {
+  color: var(--muted);
+}
 
 .probe {
   display: grid;
-  grid-template-columns: 32px 1fr 52px;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 18px;
+  grid-template-columns: 20px 1fr 46px;
+  gap: 10px;
+  align-items: baseline;
 }
-
 .probe-sym {
-  font-size: 15px;
+  font-size: 13px;
 }
-
+.probe input {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--dim);
+  padding: 3px 0;
+  border-radius: 0;
+}
+.probe input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
 .probe-unit {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 10.5px;
   color: var(--muted);
 }
-
-.out {
-  gap: 9px 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--rule);
+.probe-hint {
+  color: var(--muted);
+  font-size: 10.5px;
+  margin-top: 10px;
 }
 
-.out .rv {
-  font-size: 15px;
-  letter-spacing: -0.01em;
-}
+/* ---- plots ---- */
 
-/* ---- plot ---- */
+.panel {
+  padding: 16px 0 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.panel:last-child {
+  border-bottom: none;
+}
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.panel-head b {
+  color: var(--ink);
+  font-weight: 400;
+}
 
 .plot {
   width: 100%;
   height: auto;
   display: block;
+  cursor: crosshair;
 }
 
-.grid-line {
+.axis {
+  stroke: var(--dim);
+  stroke-width: 1;
+}
+.tick-major {
   stroke: var(--rule);
   stroke-width: 1;
 }
-
-.frame {
-  fill: none;
-  stroke: var(--rule);
-  stroke-width: 1;
-}
-
 .tick {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
   fill: var(--muted);
 }
-
 .trace-exact {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 1.5;
+  stroke-width: 1.2;
 }
-
-/* --accent is reserved for the approximation. It appears nowhere decorative. */
 .trace-approx {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 1.5;
-  stroke-dasharray: 5 3.5;
+  stroke-width: 1.2;
 }
-
-.legend {
-  display: flex;
-  gap: 22px;
-  margin-top: 12px;
+.end-label {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+}
+.end-label.exact {
+  fill: var(--ink);
+}
+.end-label.approx {
+  fill: var(--accent);
+}
+.corner-tick {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+.corner-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  fill: var(--muted);
+}
+.xhair-line {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  pointer-events: none;
+}
+.xhair-dot-e {
+  fill: var(--ink);
+  pointer-events: none;
+}
+.xhair-dot-a {
+  fill: var(--accent);
+  pointer-events: none;
+}
+
+/* ---- deviation sparkline ---- */
+
+.err-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 10.5px;
   color: var(--muted);
+  flex-wrap: wrap;
 }
-
-.legend i {
-  display: inline-block;
-  width: 22px;
-  height: 0;
-  border-top: 1.5px solid var(--ink);
-  vertical-align: middle;
-  margin-right: 8px;
+.spark {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 20px;
 }
-
-.legend .ap i {
-  border-top: 1.5px dashed var(--accent);
+.err-row .max {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.spark-fill {
+  fill: var(--accent);
+  opacity: 0.14;
+}
+.spark-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+}
+.spark-max {
+  fill: var(--accent);
 }
 
 /* ---- footer ---- */
@@ -307,27 +427,35 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border-top: 1px solid var(--rule);
   padding-top: 14px;
+  font-size: 10.5px;
+  color: var(--dim);
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
   .page {
-    padding: 20px 20px 18px;
+    padding: 16px 16px 24px;
   }
-  .grid {
+  .body {
     grid-template-columns: 1fr;
   }
-  .masthead {
+  .rail {
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding-right: 0;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+  }
+  .main {
+    padding-left: 0;
+  }
+  .hdr {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 10px;
   }
-  .masthead-meta {
-    text-align: left;
+  .hdr-stat {
+    flex-wrap: wrap;
+    gap: 14px;
   }
 }
